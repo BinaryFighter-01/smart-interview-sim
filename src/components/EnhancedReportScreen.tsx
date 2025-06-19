@@ -399,24 +399,6 @@ const EnhancedReportScreen: React.FC<EnhancedReportScreenProps> = ({
       </div>
     </div>
   );
-
-  function formatDateTime(date: Date) {
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  function getInterviewDuration() {
-    if (interviewData.endTime) {
-      const duration = Math.floor((interviewData.endTime.getTime() - interviewData.startTime.getTime()) / 60000);
-      return `${duration} minutes`;
-    }
-    return 'N/A';
-  }
 };
 
 export default EnhancedReportScreen;
