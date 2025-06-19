@@ -214,12 +214,12 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
     const basefeedback = templates[Math.floor(Math.random() * templates.length)];
     
     if (wordCount < 30) {
-      return `${baseFeeedback} Consider providing more detailed examples to strengthen your response.`;
+      return `${basefeedback} Consider providing more detailed examples to strengthen your response.`;
     } else if (wordCount > 150) {
-      return `${baseeedback} Try to be more concise while maintaining key details.`;
+      return `${basefeedback} Try to be more concise while maintaining key details.`;
     }
     
-    return `${baseedback} Well-structured response with appropriate detail level.`;
+    return `${basefeedback} Well-structured response with appropriate detail level.`;
   };
 
   const generateStrengths = (transcript: string, category: string): string[] => {
