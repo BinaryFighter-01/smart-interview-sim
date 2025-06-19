@@ -1,14 +1,12 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Mic, MicOff, Play, Pause, Clock, User, Settings, Volume2 } from 'lucide-react';
+import { Mic, MicOff, Play, Pause, Clock, User } from 'lucide-react';
 import { InterviewData, Question, Response, Score } from '../types/interview';
 import { useToast } from '@/hooks/use-toast';
-import AdvancedAvatarAnimation from './enterprise/AdvancedAvatarAnimation';
-import { getRandomQuestions, getAllCategories, questionCategories } from '../data/questionBank';
+import AvatarAnimation from './AvatarAnimation';
 
 interface InterviewScreenProps {
   candidateName: string;
@@ -25,27 +23,47 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
   const [scores, setScores] = useState<Score[]>([]);
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [isAvatarSpeaking, setIsAvatarSpeaking] = useState(false);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(['behavioral', 'technical']);
-  const [interviewSettings, setInterviewSettings] = useState({
-    questionCount: 7,
-    avatarStyle: 'professional' as 'professional' | 'friendly' | 'corporate',
-    voiceSettings: {
-      language: 'en-US',
-      accent: 'neutral',
-      speed: 0.9,
-      pitch: 1.0
-    }
-  });
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recognitionRef = useRef<any>(null);
   const timerRef = useRef<NodeJS.Timeout>();
   const { toast } = useToast();
 
+  const defaultQuestions: Question[] = [
+    {
+      id: 1,
+      text: "Tell me about yourself and your professional background.",
+      category: 'behavioral',
+      expectedPoints: ['experience', 'skills', 'achievements', 'career goals']
+    },
+    {
+      id: 2,
+      text: "Describe a challenging project you've worked on and how you overcame the obstacles.",
+      category: 'behavioral',
+      expectedPoints: ['problem-solving', 'resilience', 'teamwork', 'results']
+    },
+    {
+      id: 3,
+      text: "What are your greatest strengths and how do they apply to this role?",
+      category: 'behavioral',
+      expectedPoints: ['self-awareness', 'relevant skills', 'examples', 'job alignment']
+    },
+    {
+      id: 4,
+      text: "Tell me about a time when you had to work with a difficult team member.",
+      category: 'situational',
+      expectedPoints: ['communication', 'conflict resolution', 'professionalism', 'outcome']
+    },
+    {
+      id: 5,
+      text: "Where do you see yourself in 5 years and how does this position fit into your career goals?",
+      category: 'behavioral',
+      expectedPoints: ['career planning', 'ambition', 'company fit', 'growth mindset']
+    }
+  ];
+
   useEffect(() => {
-    // Generate questions based on selected categories
-    const generatedQuestions = getRandomQuestions(selectedCategories, interviewSettings.questionCount);
-    setQuestions(generatedQuestions);
+    setQuestions(defaultQuestions);
     startTimer();
     
     // Initialize Speech Recognition
@@ -71,7 +89,7 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [selectedCategories, interviewSettings.questionCount]);
+  }, []);
 
   const startTimer = () => {
     timerRef.current = setInterval(() => {
@@ -81,10 +99,20 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
 
   const speakQuestion = (questionText: string) => {
     setIsAvatarSpeaking(true);
-  };
-
-  const handleAvatarSpeechComplete = () => {
-    setIsAvatarSpeaking(false);
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(questionText);
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      utterance.volume = 0.8;
+      
+      utterance.onend = () => {
+        setIsAvatarSpeaking(false);
+      };
+      
+      speechSynthesis.speak(utterance);
+    } else {
+      setTimeout(() => setIsAvatarSpeaking(false), 3000);
+    }
   };
 
   const startRecording = async () => {
@@ -157,15 +185,15 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
       duration: 0
     };
 
-    // Enhanced AI analysis simulation
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Simulate AI analysis (in real implementation, this would call OpenAI API)
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     const score: Score = {
       questionId: currentQuestion.id,
-      score: Math.floor(Math.random() * 4) + 7,
-      feedback: generateEnhancedFeedback(transcript, currentQuestion),
-      strengths: generateStrengths(transcript, currentQuestion.category),
-      improvements: generateImprovements(transcript, currentQuestion.category)
+      score: Math.floor(Math.random() * 4) + 7, // Random score between 7-10 for demo
+      feedback: generateFeedback(transcript, currentQuestion),
+      strengths: ['Clear communication', 'Relevant examples', 'Professional tone'],
+      improvements: ['Could provide more specific details', 'Consider mentioning quantifiable results']
     };
 
     setResponses(prev => [...prev, response]);
@@ -174,76 +202,30 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
 
     toast({
       title: "Response Analyzed",
-      description: `Score: ${score.score}/10 - Great job!`,
+      description: `Score: ${score.score}/10`,
     });
 
+    // Move to next question or complete interview
     if (currentQuestionIndex < questions.length - 1) {
       setTimeout(() => {
         setCurrentQuestionIndex(prev => prev + 1);
         setTranscript('');
         speakQuestion(questions[currentQuestionIndex + 1].text);
-      }, 2000);
+      }, 1500);
     } else {
       completeInterview();
     }
   };
 
-  const generateEnhancedFeedback = (transcript: string, question: Question): string => {
+  const generateFeedback = (transcript: string, question: Question): string => {
     const wordCount = transcript.split(' ').length;
-    const category = question.category;
-    
-    const feedbackTemplates = {
-      behavioral: [
-        "Strong storytelling with clear situation and outcome.",
-        "Good use of specific examples to demonstrate skills.",
-        "Clear explanation of your role and responsibilities."
-      ],
-      technical: [
-        "Solid understanding of technical concepts.",
-        "Good problem-solving approach demonstrated.",
-        "Clear explanation of technical implementation."
-      ],
-      leadership: [
-        "Excellent demonstration of leadership principles.",
-        "Strong focus on team development and results.",
-        "Good balance of authority and collaboration."
-      ]
-    };
-
-    const templates = feedbackTemplates[category] || feedbackTemplates.behavioral;
-    const basefeedback = templates[Math.floor(Math.random() * templates.length)];
-    
-    if (wordCount < 30) {
-      return `${baseFeeedback} Consider providing more detailed examples to strengthen your response.`;
-    } else if (wordCount > 150) {
-      return `${baseeedback} Try to be more concise while maintaining key details.`;
+    if (wordCount < 20) {
+      return "Your response was brief. Consider providing more detailed examples and explanations.";
+    } else if (wordCount > 200) {
+      return "Good detailed response. Try to be more concise while maintaining the key points.";
+    } else {
+      return "Well-structured response with good balance of detail and clarity.";
     }
-    
-    return `${baseedback} Well-structured response with appropriate detail level.`;
-  };
-
-  const generateStrengths = (transcript: string, category: string): string[] => {
-    const strengthsMap = {
-      behavioral: ['Clear communication', 'Specific examples', 'Result-oriented thinking'],
-      technical: ['Technical knowledge', 'Problem-solving approach', 'Implementation clarity'],
-      leadership: ['Team focus', 'Strategic thinking', 'Decision-making skills'],
-      problemSolving: ['Analytical approach', 'Creative solutions', 'Systematic thinking'],
-      communication: ['Articulation', 'Active listening', 'Persuasive communication']
-    };
-    
-    return strengthsMap[category] || strengthsMap.behavioral;
-  };
-
-  const generateImprovements = (transcript: string, category: string): string[] => {
-    const improvementsMap = {
-      behavioral: ['Add more quantifiable results', 'Include stakeholder impact'],
-      technical: ['Mention scalability considerations', 'Discuss alternative approaches'],
-      leadership: ['Elaborate on team development', 'Include change management aspects'],
-      problemSolving: ['Consider long-term implications', 'Mention risk mitigation'],
-      communication: ['Practice active listening techniques', 'Enhance presentation skills']
-    };
-    
-    return improvementsMap[category] || improvementsMap.behavioral;
   };
 
   const completeInterview = () => {
@@ -260,18 +242,10 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
       scores,
       overallScore: Math.round(averageScore * 10) / 10,
       feedback: scores.map(s => s.feedback),
-      recommendation: generateRecommendation(averageScore)
+      recommendation: averageScore >= 8 ? "Recommended for next round" : averageScore >= 6 ? "Consider for next round" : "Needs improvement"
     };
 
     onComplete(interviewData);
-  };
-
-  const generateRecommendation = (averageScore: number): string => {
-    if (averageScore >= 8.5) return "Highly Recommended - Exceptional candidate with strong skills across all areas";
-    if (averageScore >= 7.5) return "Recommended - Strong candidate with solid performance and good potential";
-    if (averageScore >= 6.5) return "Consider for next round - Good foundation with some areas for development";
-    if (averageScore >= 5.5) return "Marginal - Consider additional screening or different role fit";
-    return "Not recommended - Significant skill gaps identified";
   };
 
   const currentQuestion = questions[currentQuestionIndex];
@@ -290,106 +264,88 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
   }, [currentQuestionIndex]);
 
   return (
-    <div className="min-h-screen p-4 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="max-w-7xl mx-auto">
-        {/* Enhanced Header */}
-        <Card className="mb-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-xl">
-          <CardContent className="p-6">
+    <div className="min-h-screen p-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <Card className="mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+          <CardContent className="p-4">
             <div className="flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                  <User size={24} />
-                </div>
+              <div className="flex items-center gap-3">
+                <User size={24} />
                 <div>
-                  <h2 className="text-2xl font-bold">{candidateName}</h2>
-                  <p className="opacity-90">AI-Powered Technical Interview</p>
+                  <h2 className="text-xl font-semibold">{candidateName}</h2>
+                  <p className="opacity-90">AI Interview in Progress</p>
                 </div>
               </div>
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <Clock size={20} />
-                  <span className="font-mono text-lg">{formatTime(timeElapsed)}</span>
+                  <span className="font-mono">{formatTime(timeElapsed)}</span>
                 </div>
                 <div className="text-right">
                   <p className="text-sm opacity-90">Question {currentQuestionIndex + 1} of {questions.length}</p>
-                  <Progress value={progress} className="w-40 mt-1 bg-white/20" />
+                  <Progress value={progress} className="w-32 mt-1" />
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="grid lg:grid-cols-5 gap-6">
-          {/* Enhanced Avatar Section */}
-          <div className="lg:col-span-2">
-            <Card className="h-fit shadow-xl border-0 bg-gradient-to-br from-white to-blue-50">
-              <CardHeader className="text-center pb-4">
-                <CardTitle className="text-xl font-bold text-gray-800">Your AI Interviewer</CardTitle>
-                <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  Professional Interview Mode
-                </div>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center">
-                <AdvancedAvatarAnimation 
-                  isPlaying={isAvatarSpeaking || isRecording}
-                  currentText={isAvatarSpeaking ? currentQuestion?.text : ""}
-                  avatarStyle={interviewSettings.avatarStyle}
-                  voiceSettings={interviewSettings.voiceSettings}
-                  onVoiceComplete={handleAvatarSpeechComplete}
-                />
-                
-                {isAnalyzing && (
-                  <div className="mt-6 text-center">
-                    <div className="inline-flex items-center gap-3 bg-blue-100 text-blue-800 px-6 py-3 rounded-full shadow-lg">
-                      <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                      <span className="font-medium">Analyzing your response with AI...</span>
-                    </div>
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Avatar Section */}
+          <Card className="h-fit">
+            <CardHeader>
+              <CardTitle className="text-center">Your AI Interviewer</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center space-y-4">
+              <AvatarAnimation 
+                isPlaying={isAvatarSpeaking || isRecording}
+                currentText={isAvatarSpeaking ? currentQuestion?.text : ""}
+              />
+              
+              {isAnalyzing && (
+                <div className="text-center">
+                  <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full">
+                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    Analyzing your response...
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-          {/* Enhanced Question and Response Section */}
-          <div className="lg:col-span-3 space-y-6">
+          {/* Question and Response Section */}
+          <div className="space-y-6">
             {/* Current Question */}
-            <Card className="shadow-xl border-0">
+            <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl">Question {currentQuestionIndex + 1}</CardTitle>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="capitalize text-sm">
-                      {questionCategories[currentQuestion?.category] || currentQuestion?.category}
-                    </Badge>
-                    <Badge className="bg-blue-100 text-blue-800">
-                      {Math.ceil(questions.length * 5 - (currentQuestionIndex * 5))} min left
-                    </Badge>
-                  </div>
-                </div>
+                <CardTitle className="flex items-center justify-between">
+                  Question {currentQuestionIndex + 1}
+                  <span className="text-sm font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                    {currentQuestion?.category}
+                  </span>
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border-l-4 border-blue-500">
-                  <p className="text-lg leading-relaxed text-gray-800">{currentQuestion?.text}</p>
-                </div>
+              <CardContent>
+                <p className="text-lg mb-4">{currentQuestion?.text}</p>
                 
-                {/* Enhanced Recording Controls */}
-                <div className="flex items-center gap-4">
+                {/* Recording Controls */}
+                <div className="flex items-center gap-4 mb-4">
                   {!isRecording ? (
                     <Button 
                       onClick={startRecording}
                       disabled={isAnalyzing || isAvatarSpeaking}
-                      className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2 px-6 py-3 text-lg shadow-lg hover:shadow-xl transition-all"
+                      className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
                     >
-                      <Mic size={24} />
-                      Start Recording Answer
+                      <Mic size={20} />
+                      Start Recording
                     </Button>
                   ) : (
                     <Button 
                       onClick={stopRecording}
-                      className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2 px-6 py-3 text-lg animate-pulse shadow-lg"
+                      className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2 animate-pulse"
                     >
-                      <MicOff size={24} />
+                      <MicOff size={20} />
                       Stop Recording
                     </Button>
                   )}
@@ -398,44 +354,33 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
                     <Button 
                       onClick={() => speakQuestion(currentQuestion?.text)}
                       variant="outline"
-                      className="flex items-center gap-2 px-4 py-3 border-2 hover:bg-blue-50"
+                      className="flex items-center gap-2"
                     >
-                      <Volume2 size={20} />
+                      <Play size={16} />
                       Repeat Question
                     </Button>
                   )}
                 </div>
 
-                {/* Enhanced Transcript Display */}
+                {/* Transcript */}
                 {transcript && (
-                  <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+                  <Card className="bg-gray-50">
                     <CardContent className="p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <h4 className="font-semibold text-green-800">Your Response:</h4>
-                      </div>
-                      <p className="text-gray-700 italic text-lg leading-relaxed">"{transcript}"</p>
-                      <div className="mt-2 text-sm text-green-600">
-                        Word count: {transcript.split(' ').length} • Estimated duration: {Math.ceil(transcript.split(' ').length / 3)}s
-                      </div>
+                      <h4 className="font-semibold mb-2">Your Response:</h4>
+                      <p className="text-gray-700 italic">"{transcript}"</p>
                     </CardContent>
                   </Card>
                 )}
               </CardContent>
             </Card>
 
-            {/* Enhanced Progress Summary */}
-            <Card className="shadow-xl border-0">
+            {/* Progress Summary */}
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 font-bold text-sm">{Math.round(progress)}%</span>
-                  </div>
-                  Interview Progress
-                </CardTitle>
+                <CardTitle>Interview Progress</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {questions.map((question, index) => {
                     const isCompleted = index < currentQuestionIndex;
                     const isCurrent = index === currentQuestionIndex;
@@ -444,37 +389,23 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
                     return (
                       <div 
                         key={question.id}
-                        className={`flex items-center justify-between p-4 rounded-xl transition-all ${
-                          isCurrent 
-                            ? 'bg-gradient-to-r from-blue-100 to-indigo-100 border-2 border-blue-300 shadow-md' 
-                            : isCompleted 
-                              ? 'bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200' 
-                              : 'bg-gray-50 border border-gray-200'
+                        className={`flex items-center justify-between p-3 rounded-lg ${
+                          isCurrent ? 'bg-blue-100 border-2 border-blue-300' : isCompleted ? 'bg-green-50' : 'bg-gray-50'
                         }`}
                       >
-                        <div className="flex items-center gap-4">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${
-                            isCompleted 
-                              ? 'bg-green-600 text-white' 
-                              : isCurrent 
-                                ? 'bg-blue-600 text-white' 
-                                : 'bg-gray-300 text-gray-600'
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                            isCompleted ? 'bg-green-600 text-white' : isCurrent ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
                           }`}>
                             {index + 1}
                           </div>
-                          <div>
-                            <span className={`font-medium ${isCurrent ? 'text-blue-800' : 'text-gray-700'}`}>
-                              {questionCategories[question.category]} Question
-                            </span>
-                            {isCurrent && (
-                              <div className="text-sm text-blue-600 font-medium">Currently answering...</div>
-                            )}
-                          </div>
+                          <span className={`text-sm ${isCurrent ? 'font-semibold' : ''}`}>
+                            {question.category} question
+                          </span>
                         </div>
                         {score && (
                           <div className="text-right">
-                            <div className="text-2xl font-bold text-green-600">{score.score}/10</div>
-                            <div className="text-xs text-gray-500">Completed</div>
+                            <span className="text-lg font-bold text-green-600">{score.score}/10</span>
                           </div>
                         )}
                       </div>
