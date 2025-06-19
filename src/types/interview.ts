@@ -2,7 +2,7 @@
 export interface Question {
   id: number;
   text: string;
-  category: 'behavioral' | 'technical' | 'situational';
+  category: 'behavioral' | 'technical' | 'situational' | 'leadership' | 'communication';
   expectedPoints: string[];
 }
 

@@ -31,35 +31,185 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
 
   const defaultQuestions: Question[] = [
     {
-      id: 1,
-      text: "Tell me about yourself and your professional background.",
-      category: 'behavioral',
-      expectedPoints: ['experience', 'skills', 'achievements', 'career goals']
-    },
-    {
-      id: 2,
-      text: "Describe a challenging project you've worked on and how you overcame the obstacles.",
-      category: 'behavioral',
-      expectedPoints: ['problem-solving', 'resilience', 'teamwork', 'results']
-    },
-    {
-      id: 3,
-      text: "What are your greatest strengths and how do they apply to this role?",
-      category: 'behavioral',
-      expectedPoints: ['self-awareness', 'relevant skills', 'examples', 'job alignment']
-    },
-    {
-      id: 4,
-      text: "Tell me about a time when you had to work with a difficult team member.",
-      category: 'situational',
-      expectedPoints: ['communication', 'conflict resolution', 'professionalism', 'outcome']
-    },
-    {
-      id: 5,
-      text: "Where do you see yourself in 5 years and how does this position fit into your career goals?",
-      category: 'behavioral',
-      expectedPoints: ['career planning', 'ambition', 'company fit', 'growth mindset']
-    }
+    id: 1,
+    text: "Tell me about yourself and your professional background.",
+    category: 'behavioral',
+    expectedPoints: ['experience', 'skills', 'achievements', 'career goals']
+  },
+  {
+    id: 2,
+    text: "Describe a challenging project you've worked on and how you overcame the obstacles.",
+    category: 'behavioral',
+    expectedPoints: ['problem-solving', 'resilience', 'teamwork', 'results']
+  },
+  {
+    id: 3,
+    text: "What are your greatest strengths and how do they apply to this role?",
+    category: 'behavioral',
+    expectedPoints: ['self-awareness', 'relevant skills', 'examples', 'job alignment']
+  },
+  {
+    id: 4,
+    text: "Tell me about a time when you had to work with a difficult team member.",
+    category: 'situational',
+    expectedPoints: ['communication', 'conflict resolution', 'professionalism', 'outcome']
+  },
+  {
+    id: 5,
+    text: "Where do you see yourself in 5 years and how does this position fit into your career goals?",
+    category: 'behavioral',
+    expectedPoints: ['career planning', 'ambition', 'company fit', 'growth mindset']
+  },
+  {
+    id: 6,
+    text: "How do you prioritize tasks when handling multiple projects?",
+    category: 'situational',
+    expectedPoints: ['time management', 'organization', 'tools', 'decision-making']
+  },
+  {
+    id: 7,
+    text: "Describe a situation where you failed. What did you learn?",
+    category: 'behavioral',
+    expectedPoints: ['honesty', 'reflection', 'lessons learned', 'growth']
+  },
+  {
+    id: 8,
+    text: "How do you stay updated with industry trends and technologies?",
+    category: 'technical',
+    expectedPoints: ['learning mindset', 'resources', 'community involvement', 'examples']
+  },
+  {
+    id: 9,
+    text: "Walk me through how you would debug a technical issue in production.",
+    category: 'technical',
+    expectedPoints: ['problem-solving', 'tools', 'logical thinking', 'team collaboration']
+  },
+  {
+    id: 10,
+    text: "Tell me about a time when you led a team or project.",
+    category: 'leadership',
+    expectedPoints: ['initiative', 'planning', 'communication', 'results']
+  },
+  {
+    id: 11,
+    text: "How do you handle pressure and tight deadlines?",
+    category: 'situational',
+    expectedPoints: ['stress management', 'prioritization', 'focus', 'examples']
+  },
+  {
+    id: 12,
+    text: "What steps do you take to ensure high-quality work?",
+    category: 'technical',
+    expectedPoints: ['attention to detail', 'testing', 'review process', 'continuous improvement']
+  },
+  {
+    id: 13,
+    text: "Explain a technical concept to someone without a technical background.",
+    category: 'communication',
+    expectedPoints: ['clarity', 'simplicity', 'examples', 'audience awareness']
+  },
+  {
+    id: 14,
+    text: "How do you handle negative feedback from peers or managers?",
+    category: 'behavioral',
+    expectedPoints: ['open-mindedness', 'reflection', 'adjustment', 'professionalism']
+  },
+  {
+    id: 15,
+    text: "What motivates you to do your best work?",
+    category: 'behavioral',
+    expectedPoints: ['intrinsic motivation', 'impact', 'recognition', 'purpose']
+  },
+  {
+    id: 16,
+    text: "Tell me about a time you had to learn a new skill quickly.",
+    category: 'situational',
+    expectedPoints: ['adaptability', 'learning approach', 'application', 'results']
+  },
+  {
+    id: 17,
+    text: "How do you handle disagreements in a team setting?",
+    category: 'situational',
+    expectedPoints: ['active listening', 'respect', 'compromise', 'resolution']
+  },
+  {
+    id: 18,
+    text: "What are your weaknesses and how are you working to improve them?",
+    category: 'behavioral',
+    expectedPoints: ['self-awareness', 'honesty', 'growth effort', 'examples']
+  },
+  {
+    id: 19,
+    text: "What project are you most proud of and why?",
+    category: 'behavioral',
+    expectedPoints: ['impact', 'innovation', 'challenges', 'personal growth']
+  },
+  {
+    id: 20,
+    text: "How do you manage conflicts between team members?",
+    category: 'leadership',
+    expectedPoints: ['mediation', 'objectivity', 'solution-focused', 'team cohesion']
+  },
+  {
+    id: 21,
+    text: "Explain a time when you had to make a difficult decision with limited data.",
+    category: 'situational',
+    expectedPoints: ['judgment', 'risk-taking', 'reasoning', 'outcome']
+  },
+  {
+    id: 22,
+    text: "How do you ensure effective communication in remote teams?",
+    category: 'communication',
+    expectedPoints: ['tools', 'clarity', 'follow-up', 'collaboration']
+  },
+  {
+    id: 23,
+    text: "Describe a situation when you took initiative without being asked.",
+    category: 'leadership',
+    expectedPoints: ['proactivity', 'impact', 'ownership', 'results']
+  },
+  {
+    id: 24,
+    text: "What’s your process for learning from your mistakes?",
+    category: 'behavioral',
+    expectedPoints: ['reflection', 'adjustment', 'resilience', 'long-term learning']
+  },
+  {
+    id: 25,
+    text: "What strategies do you use to stay organized?",
+    category: 'situational',
+    expectedPoints: ['tools', 'habits', 'prioritization', 'efficiency']
+  },
+  {
+    id: 26,
+    text: "Describe your experience with working in diverse teams.",
+    category: 'communication',
+    expectedPoints: ['inclusion', 'understanding', 'collaboration', 'positive outcomes']
+  },
+  {
+    id: 27,
+    text: "How do you handle last-minute changes to a project?",
+    category: 'situational',
+    expectedPoints: ['flexibility', 'calmness', 're-prioritization', 'delivery']
+  },
+  {
+    id: 28,
+    text: "Have you ever had to mentor a junior colleague? How did you handle it?",
+    category: 'leadership',
+    expectedPoints: ['support', 'coaching', 'knowledge sharing', 'development']
+  },
+  {
+    id: 29,
+    text: "Why do you want to work at this company?",
+    category: 'behavioral',
+    expectedPoints: ['research', 'alignment', 'enthusiasm', 'values match']
+  },
+  {
+    id: 30,
+    text: "What sets you apart from other candidates?",
+    category: 'behavioral',
+    expectedPoints: ['unique skills', 'perspective', 'impact', 'examples']
+  }
   ];
 
   useEffect(() => {
