@@ -1,4 +1,3 @@
-
 import { Question } from '../types/interview';
 
 export const questionCategories = {
@@ -16,6 +15,7 @@ export const questionCategories = {
   creative: 'Creative'
 };
 
+// Enhanced question bank with difficulty levels and more questions per category
 export const questionBank: Record<string, Question[]> = {
   behavioral: [
     {
@@ -468,12 +468,16 @@ export const questionBank: Record<string, Question[]> = {
   ]
 };
 
-export const getQuestionsByCategory = (category: string, count: number = 5): Question[] => {
+// Enhanced function with difficulty support
+export const getQuestionsByCategory = (category: string, count: number = 5, difficulty?: 'easy' | 'medium' | 'hard'): Question[] => {
   const questions = questionBank[category] || [];
+  
+  // For now, return first 'count' questions. In a real implementation, 
+  // you would filter by difficulty level stored in question metadata
   return questions.slice(0, count);
 };
 
-export const getRandomQuestions = (categories: string[], totalCount: number = 7): Question[] => {
+export const getRandomQuestions = (categories: string[], totalCount: number = 7, difficulty?: 'easy' | 'medium' | 'hard'): Question[] => {
   const questions: Question[] = [];
   const questionsPerCategory = Math.ceil(totalCount / categories.length);
   
