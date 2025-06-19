@@ -4,10 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Mic, MicOff, Clock, User, Settings, Volume2, Zap } from 'lucide-react';
+import { Mic, MicOff, Play, Pause, Clock, User, Settings, Volume2 } from 'lucide-react';
 import { InterviewData, Question, Response, Score } from '../types/interview';
 import { useToast } from '@/hooks/use-toast';
-import EnhancedAvatarWithAudio from './EnhancedAvatarWithAudio';
+import AdvancedAvatarAnimation from './enterprise/AdvancedAvatarAnimation';
 import { getRandomQuestions, getAllCategories, questionCategories } from '../data/questionBank';
 
 interface InterviewScreenProps {
@@ -26,8 +26,16 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [isAvatarSpeaking, setIsAvatarSpeaking] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['behavioral', 'technical']);
-  const [difficultyLevel, setDifficultyLevel] = useState<'easy' | 'medium' | 'hard'>('medium');
-  const [adaptiveMode, setAdaptiveMode] = useState(true);
+  const [interviewSettings, setInterviewSettings] = useState({
+    questionCount: 7,
+    avatarStyle: 'professional' as 'professional' | 'friendly' | 'corporate',
+    voiceSettings: {
+      language: 'en-US',
+      accent: 'neutral',
+      speed: 0.9,
+      pitch: 1.0
+    }
+  });
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recognitionRef = useRef<any>(null);
@@ -36,7 +44,7 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
 
   useEffect(() => {
     // Generate questions based on selected categories
-    const generatedQuestions = getRandomQuestions(selectedCategories, 1, difficultyLevel);
+    const generatedQuestions = getRandomQuestions(selectedCategories, interviewSettings.questionCount);
     setQuestions(generatedQuestions);
     startTimer();
     
@@ -63,7 +71,7 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [selectedCategories, difficultyLevel]);
+  }, [selectedCategories, interviewSettings.questionCount]);
 
   const startTimer = () => {
     timerRef.current = setInterval(() => {
@@ -149,16 +157,12 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
       duration: 0
     };
 
-    // Enhanced AI analysis with adaptive scoring
+    // Enhanced AI analysis simulation
     await new Promise(resolve => setTimeout(resolve, 3000));
 
-    const baseScore = Math.floor(Math.random() * 4) + 7;
-    const adaptiveBonus = adaptiveMode && scores.length > 0 ? 
-      (scores[scores.length - 1].score > 8 ? -0.5 : 0.5) : 0;
-    
     const score: Score = {
       questionId: currentQuestion.id,
-      score: Math.min(10, Math.max(1, baseScore + adaptiveBonus)),
+      score: Math.floor(Math.random() * 4) + 7,
       feedback: generateEnhancedFeedback(transcript, currentQuestion),
       strengths: generateStrengths(transcript, currentQuestion.category),
       improvements: generateImprovements(transcript, currentQuestion.category)
@@ -170,45 +174,18 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
 
     toast({
       title: "Response Analyzed",
-      description: `Score: ${score.score}/10 - ${score.score >= 8 ? 'Excellent!' : score.score >= 6 ? 'Good job!' : 'Keep improving!'}`,
+      description: `Score: ${score.score}/10 - Great job!`,
     });
 
     if (currentQuestionIndex < questions.length - 1) {
-      // Generate next question adaptively if enabled
-      if (adaptiveMode && currentQuestionIndex === questions.length - 2) {
-        const avgScore = [...scores, score].reduce((sum, s) => sum + s.score, 0) / (scores.length + 1);
-        const nextQuestions = generateAdaptiveQuestions(avgScore);
-        if (nextQuestions.length > 0) {
-          setQuestions(prev => [...prev, ...nextQuestions]);
-        }
-      }
-      
       setTimeout(() => {
         setCurrentQuestionIndex(prev => prev + 1);
         setTranscript('');
-        setIsAvatarSpeaking(true);
+        speakQuestion(questions[currentQuestionIndex + 1].text);
       }, 2000);
     } else {
       completeInterview();
     }
-  };
-
-  const generateAdaptiveQuestions = (performance: number) => {
-    let newDifficulty: 'easy' | 'medium' | 'hard' = difficultyLevel;
-    
-    if (adaptiveMode && scores.length >= 2) {
-      const avgScore = scores.reduce((sum, score) => sum + score.score, 0) / scores.length;
-      
-      if (avgScore >= 8) {
-        newDifficulty = 'hard';
-      } else if (avgScore >= 6) {
-        newDifficulty = 'medium';
-      } else {
-        newDifficulty = 'easy';
-      }
-    }
-    
-    return getRandomQuestions(selectedCategories, 1, newDifficulty);
   };
 
   const generateEnhancedFeedback = (transcript: string, question: Question): string => {
@@ -237,12 +214,12 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
     const basefeedback = templates[Math.floor(Math.random() * templates.length)];
     
     if (wordCount < 30) {
-      return `${basefeedback} Consider providing more detailed examples to strengthen your response.`;
+      return `${baseFeeedback} Consider providing more detailed examples to strengthen your response.`;
     } else if (wordCount > 150) {
-      return `${basefeedback} Try to be more concise while maintaining key details.`;
+      return `${baseeedback} Try to be more concise while maintaining key details.`;
     }
     
-    return `${basefeedback} Well-structured response with appropriate detail level.`;
+    return `${baseedback} Well-structured response with appropriate detail level.`;
   };
 
   const generateStrengths = (transcript: string, category: string): string[] => {
@@ -315,7 +292,7 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
   return (
     <div className="min-h-screen p-4 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto">
-        {/* Enhanced Header with Adaptive Mode Indicator */}
+        {/* Enhanced Header */}
         <Card className="mb-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-xl">
           <CardContent className="p-6">
             <div className="flex justify-between items-center">
@@ -325,15 +302,7 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold">{candidateName}</h2>
-                  <div className="flex items-center gap-3 opacity-90">
-                    <span>AI-Powered Interview</span>
-                    {adaptiveMode && (
-                      <Badge className="bg-yellow-500 text-yellow-900">
-                        <Zap size={12} className="mr-1" />
-                        Adaptive Mode
-                      </Badge>
-                    )}
-                  </div>
+                  <p className="opacity-90">AI-Powered Technical Interview</p>
                 </div>
               </div>
               <div className="flex items-center gap-6">
@@ -362,24 +331,19 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
                 </div>
               </CardHeader>
               <CardContent className="flex flex-col items-center">
-                <EnhancedAvatarWithAudio
-                  isPlaying={isAvatarSpeaking}
+                <AdvancedAvatarAnimation 
+                  isPlaying={isAvatarSpeaking || isRecording}
                   currentText={isAvatarSpeaking ? currentQuestion?.text : ""}
-                  avatarStyle="professional"
-                  voiceSettings={{
-                    language: 'en-US',
-                    rate: 0.9,
-                    pitch: 1.0
-                  }}
-                  onVoiceComplete={() => setIsAvatarSpeaking(false)}
-                  onPlaybackStart={() => console.log('Avatar started speaking')}
+                  avatarStyle={interviewSettings.avatarStyle}
+                  voiceSettings={interviewSettings.voiceSettings}
+                  onVoiceComplete={handleAvatarSpeechComplete}
                 />
                 
                 {isAnalyzing && (
                   <div className="mt-6 text-center">
                     <div className="inline-flex items-center gap-3 bg-blue-100 text-blue-800 px-6 py-3 rounded-full shadow-lg">
                       <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                      <span className="font-medium">Analyzing with AI...</span>
+                      <span className="font-medium">Analyzing your response with AI...</span>
                     </div>
                   </div>
                 )}
@@ -387,7 +351,7 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
             </Card>
           </div>
 
-          {/* Enhanced Question Section */}
+          {/* Enhanced Question and Response Section */}
           <div className="lg:col-span-3 space-y-6">
             {/* Current Question */}
             <Card className="shadow-xl border-0">
@@ -398,12 +362,8 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
                     <Badge variant="outline" className="capitalize text-sm">
                       {questionCategories[currentQuestion?.category] || currentQuestion?.category}
                     </Badge>
-                    <Badge className={`${
-                      difficultyLevel === 'hard' ? 'bg-red-100 text-red-800' :
-                      difficultyLevel === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {difficultyLevel.charAt(0).toUpperCase() + difficultyLevel.slice(1)}
+                    <Badge className="bg-blue-100 text-blue-800">
+                      {Math.ceil(questions.length * 5 - (currentQuestionIndex * 5))} min left
                     </Badge>
                   </div>
                 </div>
@@ -434,14 +394,16 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ candidateName, onComp
                     </Button>
                   )}
                   
-                  <Button 
-                    onClick={() => setIsAvatarSpeaking(true)}
-                    variant="outline"
-                    className="flex items-center gap-2 px-4 py-3 border-2 hover:bg-blue-50"
-                  >
-                    <Volume2 size={20} />
-                    Repeat Question
-                  </Button>
+                  {!isAvatarSpeaking && (
+                    <Button 
+                      onClick={() => speakQuestion(currentQuestion?.text)}
+                      variant="outline"
+                      className="flex items-center gap-2 px-4 py-3 border-2 hover:bg-blue-50"
+                    >
+                      <Volume2 size={20} />
+                      Repeat Question
+                    </Button>
+                  )}
                 </div>
 
                 {/* Enhanced Transcript Display */}

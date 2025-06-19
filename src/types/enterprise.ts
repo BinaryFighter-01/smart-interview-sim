@@ -1,6 +1,4 @@
 
-import { Question } from './interview';
-
 export interface Company {
   id: string;
   name: string;
