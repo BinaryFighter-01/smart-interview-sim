@@ -1,11 +1,9 @@
-# 🚀 Smart Interview Sim
-## 🌐 Project Info
+# Smart Interview Sim
+## Project Info
 
 **Live URL**: [SmartInterview.AI](https://smart-interview-sim.vercel.app/)
 
 **Author**: [Anil Abhange](mailto:anilabhange219411@gmail.com)  
-**Twitter**: [@anilabhange](https://twitter.com/anilabhange)
-
 ---
 
 ## 🛠️ Tech Stack
